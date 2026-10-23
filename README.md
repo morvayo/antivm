@@ -12,7 +12,7 @@ include the [vm header](src/vm.hpp) from your own program
 msvc and clang cl builds return unknown for the assembly trap checks
 zig windows gnu builds run those checks on x64 and x86
 
-## output
+## throughput
 
 ![vm detection output](hahaha.png)
 
