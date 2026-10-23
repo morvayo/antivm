@@ -28,7 +28,3 @@ the zig trap test runs eight threads across two source files and checks handler 
 
 original contributions use the [mit license](LICENSE)
 see the [third party notice](THIRD_PARTY.md) for excluded material
-
-## credits
-
-firmware parsing follows the [smbios specification](https://www.dmtf.org/standards/smbios) and [acpi specification](https://uefi.org/specifications)
