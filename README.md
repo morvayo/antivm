@@ -12,12 +12,9 @@ include the [vm header](src/vm.hpp) from your own program
 msvc and clang cl builds return unknown for the assembly trap checks
 zig windows gnu builds run those checks on x64 and x86
 
-## tests
+## output
 
-configure with cmake then build and run ctest
-the workflow tests msvc and zig on both architectures plus clang cl on x64
-tests cover firmware parsing and bad inputs as well as driver query failures
-the zig trap test runs eight threads across two source files and checks handler cleanup
+![vm detection output](assets/output.png)
 
 ## license
 
