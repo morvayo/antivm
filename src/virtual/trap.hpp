@@ -14,7 +14,9 @@ struct vm_trap_record {
     uintptr_t debug_registers = 0;
 };
 
-static thread_local vm_trap_record *vm_current_trap;
+inline thread_local vm_trap_record *vm_current_trap;
+inline SRWLOCK vm_trap_lock = SRWLOCK_INIT;
+inline bool vm_trap_cleanup_failed;
 
 static LONG CALLBACK vm_trap_handler(EXCEPTION_POINTERS *exception) {
     vm_trap_record *trap = vm_current_trap;
@@ -46,9 +48,18 @@ static LONG CALLBACK vm_trap_handler(EXCEPTION_POINTERS *exception) {
 
 static vm_state vm_trap_probe(bool cpuid, uintptr_t *debug_registers = NULL) {
     if (debug_registers != NULL) *debug_registers = 0;
+    if (vm_current_trap != NULL) return vm_unknown;
+    AcquireSRWLockExclusive(&vm_trap_lock);
+    if (vm_trap_cleanup_failed) {
+        ReleaseSRWLockExclusive(&vm_trap_lock);
+        return vm_unknown;
+    }
     vm_trap_record trap = {0, 0, vm_unknown};
     PVOID handler = AddVectoredExceptionHandler(1, vm_trap_handler);
-    if (handler == NULL) return vm_unknown;
+    if (handler == NULL) {
+        ReleaseSRWLockExclusive(&vm_trap_lock);
+        return vm_unknown;
+    }
     // başka thread ortalığı dağıttı dıye hesabı bıze kıtleme amk
     vm_current_trap = &trap;
 #if defined(__x86_64__)
@@ -123,7 +134,10 @@ static vm_state vm_trap_probe(bool cpuid, uintptr_t *debug_registers = NULL) {
     }
 #endif
     vm_current_trap = NULL;
-    if (!RemoveVectoredExceptionHandler(handler)) return vm_unknown;
+    bool removed = RemoveVectoredExceptionHandler(handler) != 0;
+    if (!removed) vm_trap_cleanup_failed = true;
+    ReleaseSRWLockExclusive(&vm_trap_lock);
+    if (!removed) return vm_unknown;
     if (debug_registers != NULL) *debug_registers = trap.debug_registers;
     return trap.result;
 }

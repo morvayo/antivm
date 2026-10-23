@@ -1,0 +1,55 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  msvc:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, Win32]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -A ${{ matrix.arch }}
+      - run: cmake --build build --config Debug --parallel
+      - run: ctest --test-dir build -C Debug --output-on-failure
+  clang:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+  zig:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, x86]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.16.0
+      - shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path build -Force | Out-Null
+          foreach ($name in @('vendor', 'formats', 'collected', 'drivers', 'boot', 'trap')) {
+            $sources = @("tests/$name.cc")
+            if ($name -eq 'trap') { $sources += 'tests/trap_peer.cc' }
+            if ('${{ matrix.arch }}' -eq 'x86') {
+              zig cc -x c++ -nostdlib++ -target x86-windows-gnu -std=c++17 -O2 -fno-exceptions -fno-rtti -Isrc -Isrc/unknown @sources -o "build/$name.exe"
+            } else {
+              zig c++ -target x86_64-windows-gnu -std=c++17 -O2 -fno-exceptions -fno-rtti -Isrc -Isrc/unknown @sources -o "build/$name.exe"
+            }
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            & "./build/$name.exe"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
