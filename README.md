@@ -14,7 +14,7 @@ zig windows gnu builds run those checks on x64 and x86
 
 ## output
 
-![vm detection output](output.png)
+![vm detection output](hahaha.png)
 
 ## license
 
