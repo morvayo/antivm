@@ -5,11 +5,6 @@ small header only c++ library for checking vms and debuggers on windows
 checks cpu and firmware data including smbios and acpi
 also reports tpm and boot state along with pci devices disks and driver details
 
-results are physical virtual or unknown
-failed checks stay unknown because broken shit proves nothing
-tpm and secure boot do not decide whether a machine is virtual
-some vms will get through so test it on your own setup
-
 ## compiling
 
 use a c++17 compiler and add src to your include path
@@ -27,4 +22,3 @@ the zig trap test runs eight threads across two source files and checks handler 
 ## license
 
 original contributions use the [mit license](LICENSE)
-see the [third party notice](THIRD_PARTY.md) for excluded material
