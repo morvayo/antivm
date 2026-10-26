@@ -5,6 +5,12 @@
 #include <stddef.h>
 #include <string.h>
 
+static bool vm_hyperv_root_partition(uint32_t maximum_leaf, uint32_t interface_id,
+        uint32_t partition_privileges) {
+    return maximum_leaf >= 0x40000003u && interface_id == 0x31237648u
+            && (partition_privileges & 1u) != 0;
+}
+
 static unsigned char vm_ascii_lower(unsigned char value) {
     return value >= 'A' && value <= 'Z' ? value + ('a' - 'A') : value;
 }

@@ -33,9 +33,15 @@ static vm_report vm_detect_collect(vm_detection_details *details) {
         bool root_partition = false;
         if (cpu_info[0] >= 0x40000003 && cpu_info[1] == 0x7263694d
                 && cpu_info[2] == 0x666f736f && cpu_info[3] == 0x76482074) {
-            cpu_info[1] = 0;
-            __cpuid(cpu_info, 0x40000003);
-            root_partition = (cpu_info[1] & 1) != 0;
+            uint32_t maximum_leaf = (uint32_t) cpu_info[0];
+            __cpuid(cpu_info, 0x40000001);
+            uint32_t interface_id = (uint32_t) cpu_info[0];
+            if (interface_id == 0x31237648u) {
+                cpu_info[1] = 0;
+                __cpuid(cpu_info, 0x40000003);
+                root_partition = vm_hyperv_root_partition(maximum_leaf, interface_id,
+                        (uint32_t) cpu_info[1]);
+            }
         }
         if (!root_partition) cpu = {vm_virtual, vm_reason_hypervisor};
     }
