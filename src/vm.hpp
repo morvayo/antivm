@@ -5,5 +5,6 @@
 #include "virtual/virtual.hpp"
 #include "debug/debugger.hpp"
 #include "report.hpp"
+#include "json.hpp"
 
 #endif
