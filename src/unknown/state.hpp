@@ -174,6 +174,7 @@ struct vm_result {
 };
 
 static const char *vm_message(int code) {
+    if (code == 0) return "physical";
     if (code == 10) return "debugger detected";
     if (code == 20) return "virtual";
     return "unknown";
